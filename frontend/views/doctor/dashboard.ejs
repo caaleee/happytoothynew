@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dahboard Dokter - Happy Toothy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f3f4f6;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        width: 100vw;
+        overflow-x: hidden;
+      }
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #e0e0e0;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #a0a0a0;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #888;
+      }
+      .nav-link.active {
+        background-color: #e0f2fe;
+        color: #1e40af;
+        font-weight: 600;
+      }
+      .page-content {
+        flex-grow: 1;
+        padding-bottom: 2rem;
+      }
+      #doctor-portal {
+        width: 100vw;
+        min-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+        margin: 0;
+        display: flex;
+        flex-grow: 1;
+      }
+      nav {
+        min-height: 100vh;
+        border-radius: 0;
+        flex-shrink: 0;
+      }
+      main {
+        flex-grow: 1;
+        padding: 2rem;
+        overflow-y: auto;
+      }
+
+      #modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 40;
+      }
+      #schedule-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        z-index: 50;
+        max-width: 28rem;
+        width: 100%;
+      }
+
+      #message-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        max-width: 24rem;
+        width: 100%;
+        text-align: center;
+        z-index: 50;
+      }
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        #prescription-to-print,
+        #prescription-to-print * {
+          visibility: visible;
+        }
+        #prescription-to-print {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          padding: 2rem;
+          background-color: white;
+        }
+      }
+    </style>
+  </head>
+  <body class="">
+    <div id="doctor-portal" class="flex flex-col md:flex-row w-full bg-white">
+      <nav
+        class="w-full md:w-64 bg-gray-800 text-white p-6 flex flex-col justify-between"
+      >
+        <div>
+          <h1
+            class="text-3xl font-extrabold mb-8 text-blue-300 text-center md:text-left"
+          >
+            Happy Toothy
+          </h1>
+          <ul class="space-y-3">
+            <li>
+              <a
+                href="#"
+                id="nav-dashboard"
+                class="nav-link flex items-center p-3 rounded-md hover:bg-gray-700 transition-colors duration-200 active"
+              >
+                <i class="fas fa-chart-line mr-3"></i> Dashboard
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                id="nav-profile"
+                class="nav-link flex items-center p-3 rounded-md hover:bg-gray-700 transition-colors duration-200"
+              >
+                <i class="fas fa-user-circle mr-3"></i> Profil Saya
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                id="nav-examination"
+                class="nav-link hidden flex items-center p-3 rounded-md hover:bg-gray-700 transition-colors duration-200"
+              >
+                <i class="fas fa-stethoscope mr-3"></i> Pemeriksaan
+              </a>
+            </li>
+          </ul>
+        </div>
+        <button
+          id="logout-btn"
+          class="flex items-center justify-center mt-6 md:mt-0 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm transition duration-300 ease-in-out"
+        >
+          <i class="fas fa-sign-out-alt mr-2"></i> Keluar
+        </button>
+      </nav>
+
+      <main class="flex-1 p-8 overflow-y-auto">
+        <section id="dashboard-content" class="page-content">
+          <h2 class="text-3xl font-bold text-gray-800 mb-8">
+            Ringkasan Dashboard
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg shadow-inner"
+            >
+              <h3 class="text-xl font-semibold text-blue-800 mb-4">
+                Janji Temu Akan Datang
+              </h3>
+              <div
+                id="upcoming-appointments"
+                class="space-y-3 max-h-80 overflow-y-auto pr-2"
+              >
+                <p class="text-gray-600 text-sm">Memuat janji temu...</p>
+              </div>
+            </div>
+
+            <div
+              class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg shadow-inner"
+            >
+              <h3 class="text-xl font-semibold text-green-800 mb-4">
+                Antrian Pasien Hari Ini
+              </h3>
+              <div
+                id="patient-queue"
+                class="space-y-3 max-h-80 overflow-y-auto pr-2"
+              >
+                <p class="text-gray-600 text-sm">Memuat antrian...</p>
+              </div>
+            </div>
+
+            <div
+              class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg shadow-inner"
+            >
+              <h3 class="text-xl font-semibold text-purple-800 mb-4">
+                Jadwal Mingguan Saya
+              </h3>
+              <div
+                id="doctor-schedule"
+                class="space-y-3 max-h-80 overflow-y-auto pr-2"
+              >
+                <p class="text-gray-600 text-sm">Memuat jadwal...</p>
+              </div>
+              <button
+                id="manage-schedule-btn"
+                class="mt-6 w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm transition duration-300 ease-in-out"
+              >
+                Kelola Jadwal
+              </button>
+            </div>
+          </div>
+        </section>
+        <section id="profile-content" class="page-content hidden">
+          <h2 class="text-3xl font-bold text-gray-800 mb-8">Profil Saya</h2>
+          <form
+            id="profile-form"
+            class="space-y-6 bg-white p-8 rounded-lg shadow-lg"
+          >
+            <div
+              class="flex flex-col md:flex-row items-center md:space-x-6 space-y-4 md:space-y-0"
+            >
+              <img
+                id="profile-pic-preview"
+                class="w-24 h-24 rounded-full object-cover shadow-md"
+                src="https://placehold.co/100x100/A0AEC0/FFFFFF?text=No+Pic"
+                alt="Foto Profil"
+              />
+              <div class="w-full">
+                <label
+                  for="foto_profil_url"
+                  class="block text-sm font-medium text-gray-700 mb-1"
+                  >URL Foto Profil (atau Unggah)</label
+                >
+                <input
+                  type="text"
+                  id="foto_profil_url"
+                  placeholder="Masukkan URL gambar"
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+                <p class="text-xs text-gray-500 mt-1">
+                  Link langsung ke gambar profil Anda (misal: dari Imgur,
+                  Cloudinary).
+                </p>
+
+                <label
+                  for="profile-pic-upload"
+                  class="block text-sm font-medium text-gray-700 mt-4 mb-1"
+                  >Unggah Foto Baru</label
+                >
+                <input
+                  type="file"
+                  id="profile-pic-upload"
+                  accept="image/*"
+                  class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer bg-gray-50 focus:outline-none"
+                />
+                <p class="text-xs text-gray-500 mt-1">
+                  Pilih gambar dari perangkat Anda.
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  for="nama_lengkap"
+                  class="block text-sm font-medium text-gray-700"
+                  >Nama Lengkap</label
+                >
+                <input
+                  type="text"
+                  id="nama_lengkap"
+                  required
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label
+                  for="email"
+                  class="block text-sm font-medium text-gray-700"
+                  >Email</label
+                >
+                <input
+                  type="email"
+                  id="email"
+                  required
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label
+                  for="no_telepon"
+                  class="block text-sm font-medium text-gray-700"
+                  >Nomor Telepon</label
+                >
+                <input
+                  type="text"
+                  id="no_telepon"
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label
+                  for="tanggal_lahir"
+                  class="block text-sm font-medium text-gray-700"
+                  >Tanggal Lahir</label
+                >
+                <input
+                  type="date"
+                  id="tanggal_lahir"
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label
+                  for="jenis_kelamin"
+                  class="block text-sm font-medium text-gray-700"
+                  >Jenis Kelamin</label
+                >
+                <select
+                  id="jenis_kelamin"
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                >
+                  <option value="">Pilih Jenis Kelamin</option>
+                  <option value="Laki-laki">Laki-laki</option>
+                  <option value="Perempuan">Perempuan</option>
+                </select>
+              </div>
+              <div>
+                <label for="nik" class="block text-sm font-medium text-gray-700"
+                  >NIK</label
+                >
+                <input
+                  type="text"
+                  id="nik"
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                for="alamat"
+                class="block text-sm font-medium text-gray-700"
+                >Alamat</label
+              >
+              <textarea
+                id="alamat"
+                rows="2"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              ></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label
+                  for="spesialisasi"
+                  class="block text-sm font-medium text-gray-700"
+                  >Spesialisasi</label
+                >
+                <input
+                  type="text"
+                  id="spesialisasi"
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label
+                  for="lisensi_no"
+                  class="block text-sm font-medium text-gray-700"
+                  >Nomor Lisensi</label
+                >
+                <input
+                  type="text"
+                  id="lisensi_no"
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label
+                  for="pengalaman_tahun"
+                  class="block text-sm font-medium text-gray-700"
+                  >Tahun Pengalaman</label
+                >
+                <input
+                  type="number"
+                  id="pengalaman_tahun"
+                  min="0"
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700"
+                  >Rating Rata-rata</label
+                >
+                <p
+                  id="rating_rata2"
+                  class="mt-1 px-3 py-2 text-gray-900 border border-gray-200 rounded-md bg-gray-50"
+                >
+                  N/A
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md shadow-sm transition duration-300 ease-in-out"
+            >
+              Simpan Profil
+            </button>
+            <p id="profile-message" class="text-red-500 text-sm mt-2"></p>
+          </form>
+        </section>
+
+        <section id="examination-content" class="page-content hidden">
+          <div id="examination-view">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">
+              Pemeriksaan Pasien
+            </h2>
+            <div
+              class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 bg-gray-50 p-6 rounded-md shadow-sm"
+            >
+              <div class="bg-blue-50 p-4 rounded-md shadow-sm">
+                <h3 class="text-lg font-semibold text-blue-700 mb-2">
+                  Data Pasien
+                </h3>
+                <p>
+                  <strong>Nama:</strong> <span id="patient-nama_lengkap"></span>
+                </p>
+                <p>
+                  <strong>Tgl. Lahir:</strong>
+                  <span id="patient-tanggal_lahir"></span>
+                </p>
+                <p>
+                  <strong>Kelamin:</strong>
+                  <span id="patient-jenis_kelamin"></span>
+                </p>
+                <p>
+                  <strong>Kontak:</strong> <span id="patient-no_telepon"></span>
+                </p>
+                <p><strong>Email:</strong> <span id="patient-email"></span></p>
+                <p><strong>NIK:</strong> <span id="patient-nik"></span></p>
+                <p>
+                  <strong>Alamat:</strong> <span id="patient-alamat"></span>
+                </p>
+                <input type="hidden" id="current-patient-profile-id" />
+              </div>
+              <div
+                class="bg-green-50 p-4 rounded-md shadow-sm max-h-60 overflow-y-auto"
+              >
+                <h3 class="text-lg font-semibold text-green-700 mb-2">
+                  Riwayat Medis
+                </h3>
+                <div id="medical-history-list" class="space-y-3">
+                  <p class="text-gray-600 text-sm">Tidak ada riwayat medis.</p>
+                </div>
+              </div>
+            </div>
+
+            <form
+              id="examination-form"
+              class="space-y-4 bg-white p-8 rounded-lg shadow-lg"
+            >
+              <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                Detail Pemeriksaan
+              </h3>
+              <div>
+                <label
+                  for="chief_complaint"
+                  class="block text-sm font-medium text-gray-700"
+                  >Keluhan Utama</label
+                ><textarea
+                  id="chief_complaint"
+                  rows="3"
+                  class="mt-1 block w-full p-2 border rounded-md"
+                ></textarea>
+              </div>
+              <div>
+                <label
+                  for="dental_examination_findings"
+                  class="block text-sm font-medium text-gray-700"
+                  >Temuan Pemeriksaan</label
+                ><textarea
+                  id="dental_examination_findings"
+                  rows="3"
+                  class="mt-1 block w-full p-2 border rounded-md"
+                ></textarea>
+              </div>
+              <div>
+                <label
+                  for="diagnosis"
+                  class="block text-sm font-medium text-gray-700"
+                  >Diagnosa</label
+                ><textarea
+                  id="diagnosis"
+                  rows="2"
+                  class="mt-1 block w-full p-2 border rounded-md"
+                ></textarea>
+              </div>
+              <div>
+                <label
+                  for="treatment_plan"
+                  class="block text-sm font-medium text-gray-700"
+                  >Rencana Perawatan</label
+                ><textarea
+                  id="treatment_plan"
+                  rows="3"
+                  class="mt-1 block w-full p-2 border rounded-md"
+                ></textarea>
+              </div>
+              <div>
+                <label
+                  for="actions_taken"
+                  class="block text-sm font-medium text-gray-700"
+                  >Tindakan Dilakukan</label
+                ><textarea
+                  id="actions_taken"
+                  rows="2"
+                  class="mt-1 block w-full p-2 border rounded-md"
+                ></textarea>
+              </div>
+              <div>
+                <label
+                  for="resep_obat"
+                  class="block text-sm font-medium text-gray-700"
+                  >Resep Obat</label
+                ><textarea
+                  id="resep_obat"
+                  rows="4"
+                  class="mt-1 block w-full p-2 border rounded-md"
+                  placeholder="Contoh: Amoxicillin 500mg, 3x sehari setelah makan"
+                ></textarea>
+              </div>
+              <div>
+                <label
+                  for="doctor_notes"
+                  class="block text-sm font-medium text-gray-700"
+                  >Catatan Tambahan</label
+                ><textarea
+                  id="doctor_notes"
+                  rows="3"
+                  class="mt-1 block w-full p-2 border rounded-md"
+                ></textarea>
+              </div>
+              <div class="flex items-center gap-4 pt-4">
+                <button
+                  type="submit"
+                  class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md"
+                >
+                  Simpan Hasil Pemeriksaan
+                </button>
+                <button
+                  type="button"
+                  id="print-prescription-btn"
+                  class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-md"
+                >
+                  Cetak Resep
+                </button>
+              </div>
+              <p id="examination-message" class="text-red-500 text-sm mt-2"></p>
+            </form>
+          </div>
+          <div id="prescription-to-print" class="p-8 bg-white hidden">
+            <h2 class="text-2xl font-bold">Resep Obat</h2>
+            <p class="text-lg">Klinik Gigi Happy Toothy</p>
+            <hr class="my-4" />
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <strong>Untuk Pasien:</strong>
+                <span id="prescription-patient-name"></span>
+              </div>
+              <div>
+                <strong>Tanggal:</strong> <span id="prescription-date"></span>
+              </div>
+              <div>
+                <strong>Dokter:</strong>
+                <span id="prescription-doctor-name"></span>
+              </div>
+            </div>
+            <h3 class="font-bold mb-2">Resep:</h3>
+            <pre
+              id="prescription-text"
+              class="whitespace-pre-wrap font-sans bg-gray-50 p-4 border rounded-md"
+            ></pre>
+            <p class="mt-8 text-sm text-center">Semoga lekas sembuh!</p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div
+      id="modal-backdrop"
+      class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden z-40"
+    ></div>
+    <div
+      id="schedule-modal"
+      class="fixed hidden bg-white p-6 rounded-lg shadow-xl max-w-md w-full z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+    >
+      <h3
+        id="schedule-modal-title"
+        class="text-xl font-bold text-gray-800 mb-4"
+      >
+        Kelola Jadwal
+      </h3>
+      <form id="schedule-form" class="space-y-4">
+        <input type="hidden" id="modal-id-schedule" />
+        <div>
+          <label
+            for="modal-hari-dalam-minggu"
+            class="block text-sm font-medium text-gray-700"
+            >Hari</label
+          >
+          <select
+            id="modal-hari-dalam-minggu"
+            required
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+          >
+            <option value="">Pilih Hari</option>
+            <option value="Senin">Senin</option>
+            <option value="Selasa">Selasa</option>
+            <option value="Rabu">Rabu</option>
+            <option value="Kamis">Kamis</option>
+            <option value="Jumat">Jumat</option>
+            <option value="Sabtu">Sabtu</option>
+            <option value="Minggu">Minggu</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label
+              for="modal-waktu-mulai"
+              class="block text-sm font-medium text-gray-700"
+              >Waktu Mulai</label
+            ><input
+              type="time"
+              id="modal-waktu-mulai"
+              required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+            />
+          </div>
+          <div>
+            <label
+              for="modal-waktu-selesai"
+              class="block text-sm font-medium text-gray-700"
+              >Waktu Selesai</label
+            ><input
+              type="time"
+              id="modal-waktu-selesai"
+              required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+            />
+          </div>
+        </div>
+        <div>
+          <label
+            for="modal-is-available"
+            class="block text-sm font-medium text-gray-700"
+            >Ketersediaan</label
+          >
+          <select
+            id="modal-is-available"
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+          >
+            <option value="1">Tersedia</option>
+            <option value="0">Tidak Tersedia</option>
+          </select>
+        </div>
+        <div class="flex justify-end space-x-4">
+          <button
+            type="button"
+            id="close-schedule-modal"
+            class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold rounded-md"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md"
+          >
+            Simpan Jadwal
+          </button>
+        </div>
+        <p id="schedule-modal-message" class="text-red-500 text-sm mt-2"></p>
+      </form>
+    </div>
+    <div
+      id="message-modal"
+      class="fixed hidden bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center"
+    >
+      <p id="modal-text" class="text-lg font-semibold mb-4"></p>
+      <button
+        id="close-message-modal"
+        class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md"
+      >
+        OK
+      </button>
+    </div>
+
+    <script src="/js/doctorDashboard.js"></script>
+  </body>
+</html>
